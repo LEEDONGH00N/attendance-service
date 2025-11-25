@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>스터디 상세 - 세션 & 내 출석</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #eff6ff 0, #f9fafb 45%, #f3f4f6 100%);
+            --primary: #2563eb;
+            --primary-soft: #dbeafe;
+            --border-subtle: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --danger: #b91c1c;
+            --success: #15803d;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background: var(--bg-gradient);
+        }
+        * { box-sizing: border-box; }
+        body { margin:0; padding:0; }
+
+        .page-shell {
+            min-height: 100vh;
+            display:flex;
+            flex-direction:column;
+        }
+        header {
+            background: rgba(15,23,42,0.92);
+            color:#f9fafb;
+            padding:12px 16px;
+            box-shadow:0 1px 8px rgba(15,23,42,0.4);
+        }
+        .header-inner {
+            max-width:900px;
+            margin:0 auto;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:8px;
+        }
+        .header-title {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+        }
+        .header-title-line {
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .logo-circle {
+            width:26px;
+            height:26px;
+            border-radius:999px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:15px;
+            font-weight:600;
+            background:linear-gradient(135deg,#3b82f6,#a855f7);
+        }
+        .header-title-line span.text {
+            font-size:19px;
+            font-weight:600;
+        }
+        .header-subtitle {
+            font-size:12px;
+            opacity:0.8;
+        }
+        .header-chip {
+            padding:3px 10px;
+            border-radius:999px;
+            font-size:11px;
+            background:rgba(248,250,252,0.1);
+            border:1px solid rgba(148,163,184,0.6);
+        }
+
+        .container {
+            max-width:900px;
+            margin:0 auto;
+            padding:20px 16px 40px;
+        }
+
+        h2 {
+            margin:0 0 8px;
+            font-size:17px;
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+        h2::before {
+            content:"";
+            width:4px;
+            height:18px;
+            border-radius:999px;
+            background:linear-gradient(180deg,#60a5fa,#2563eb);
+            display:inline-block;
+        }
+
+        .card {
+            background:var(--card-bg);
+            border-radius:14px;
+            padding:18px 20px;
+            box-shadow:0 12px 30px rgba(15,23,42,0.08);
+            margin-bottom:18px;
+            border:1px solid rgba(148,163,184,0.18);
+        }
+
+        .text-sm { font-size:13px; }
+        .text-xs { font-size:12px; }
+        .text-muted { color:var(--text-muted); }
+        .mt-4 { margin-top:4px; }
+        .mt-8 { margin-top:8px; }
+        .mt-12 { margin-top:12px; }
+
+        .badge {
+            padding:2px 9px;
+            border-radius:999px;
+            font-size:11px;
+            background:#ecfeff;
+            color:#0f766e;
+            border:1px solid #99f6e4;
+        }
+
+        .form-row {
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-top:8px;
+        }
+        .form-row.inline > * { flex:1; }
+        label {
+            font-size:13px;
+            color:var(--text-muted);
+        }
+        input {
+            margin-top:4px;
+            padding:7px 9px;
+            border-radius:8px;
+            border:1px solid #d4d4d8;
+            font-size:14px;
+            width:100%;
+        }
+        input:focus {
+            outline:none;
+            border-color:var(--primary);
+            box-shadow:0 0 0 1px rgba(37,99,235,0.3);
+            background:#eff6ff;
+        }
+
+        button {
+            padding:8px 14px;
+            border-radius:999px;
+            border:none;
+            background:var(--primary);
+            color:#fff;
+            cursor:pointer;
+            font-size:14px;
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            box-shadow:0 8px 16px rgba(37,99,235,0.4);
+        }
+        button:hover { background:#1d4ed8; }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            margin-top:10px;
+            font-size:13px;
+            overflow:hidden;
+            border-radius:10px;
+        }
+        th, td {
+            border-bottom:1px solid #e5e7eb;
+            padding:7px 6px;
+            text-align:left;
+        }
+        th {
+            background:#f3f4f6;
+            font-weight:600;
+        }
+        tbody tr:nth-child(even){background:#f9fafb;}
+        tbody tr:hover { background:#eff6ff; }
+
+        .session-row { cursor:pointer; }
+
+        .pill {
+            padding:2px 8px;
+            border-radius:999px;
+            font-size:11px;
+            display:inline-block;
+        }
+        .pill-ATTEND { background:#dcfce7; color:#166534; }
+        .pill-LATE { background:#fef9c3; color:#92400e; }
+        .pill-ABSENT { background:#fee2e2; color:#b91c1c; }
+        .pill-NONE { background:#e5e7eb; color:#4b5563; }
+
+        .success { color:var(--success); font-size:13px; margin-top:6px;}
+        .error { color:var(--danger); font-size:13px; margin-top:6px;}
+
+        /* 알림 컴포넌트 */
+        .alert {
+            border-radius:10px;
+            padding:8px 10px;
+            display:flex;
+            align-items:flex-start;
+            gap:8px;
+            font-size:13px;
+            margin-top:6px;
+        }
+        .alert-icon {
+            font-size:16px;
+            line-height:1;
+            margin-top:2px;
+        }
+        .alert-body {
+            flex:1;
+        }
+        .alert-title {
+            font-weight:600;
+            margin-bottom:2px;
+        }
+        .alert-error {
+            background:#fef2f2;
+            border:1px solid #fecaca;
+            color:#991b1b;
+        }
+        .alert-success {
+            background:#ecfdf5;
+            border:1px solid #a7f3d0;
+            color:#065f46;
+        }
+        .alert-info {
+            background:#eff6ff;
+            border:1px solid #bfdbfe;
+            color:#1d4ed8;
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header>
+        <div class="header-inner">
+            <div class="header-title">
+                <div class="header-title-line">
+                    <div class="logo-circle">ST</div>
+                    <span class="text">스터디 상세</span>
+                </div>
+                <div class="header-subtitle" id="headerSubtitle">세션과 출석 현황을 확인하세요.</div>
+            </div>
+            <div class="header-chip" id="headerCodeChip">코드 -</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- 스터디 기본 정보 -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <h2>스터디 정보</h2>
+                <span class="badge">STUDY</span>
+            </div>
+            <p class="text-sm mt-8">
+                <strong id="studyName">스터디 이름</strong>
+            </p>
+            <p class="text-xs text-muted" id="studyDesc">스터디 설명이 여기에 표시됩니다.</p>
+            <!-- 벌금 영역 추가 -->
+            <p class="text-xs text-muted mt-8" id="studyPenalty">
+                지각/결석 벌금 정보가 여기에 표시됩니다.
+            </p>
+        </div>
+
+        <!-- 내 정보 + 내 출석 불러오기 -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <h2>내 정보</h2>
+                <span class="badge">ME</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                본인을 식별하기 위해 이름과 전화번호를 입력해주세요.
+            </p>
+            <form id="meForm" class="mt-8">
+                <div class="form-row inline">
+                    <div>
+                        <label>이름</label>
+                        <input name="name" type="text" placeholder="예: 홍길동">
+                    </div>
+                    <div>
+                        <label>전화번호</label>
+                        <input name="phone" type="text" placeholder="예: 01012345678">
+                    </div>
+                </div>
+                <button type="submit" class="mt-8">
+                    📋 내 출석 불러오기
+                </button>
+                <div id="meMsg"></div>
+            </form>
+        </div>
+
+        <!-- 세션 + 나의 출석 + 코드 입력 -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <h2>세션 & 나의 출석</h2>
+                <span class="badge">SESSIONS</span>
+            </div>
+            <p class="text-xs text-muted mt-4" id="sessionHint">
+                세션을 클릭하면 출석 코드를 입력할 수 있습니다.
+            </p>
+
+            <table id="sessionTable" class="mt-8" style="display:none;">
+                <thead>
+                <tr>
+                    <th>세션 이름</th>
+                    <th>주차</th>
+                    <th>날짜</th>
+                    <th>나의 출석</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="sessionMsg" class="text-sm mt-4"></div>
+
+            <!-- 선택된 세션 코드 입력 섹션 (참여자) -->
+            <div id="codeSection" class="mt-8" style="display:none;">
+                <div class="text-xs text-muted">
+                    선택된 세션: <strong id="selectedSessionLabel">-</strong>
+                </div>
+                <form id="codeForm" class="mt-4" style="max-width:320px;">
+                    <div class="form-row inline" style="align-items:flex-end;">
+                        <div>
+                            <label>출석 코드 (4자리)</label>
+                            <input name="attendCode" type="text" maxlength="4" placeholder="예: 1234">
+                        </div>
+                        <button type="submit">
+                            ✅ 출석하기
+                        </button>
+                    </div>
+                    <div id="codeMsg"></div>
+                </form>
+            </div>
+
+            <!-- 리더 전용 출석 코드 생성 섹션 -->
+            <div id="leaderCodeSection" class="mt-12" style="display:none;">
+                <div class="text-xs text-muted">
+                    리더 전용: 선택된 세션에 대한 출석 코드를 생성해 공유할 수 있습니다.
+                </div>
+                <form id="leaderCodeForm" class="mt-4" style="max-width:360px;">
+                    <div class="form-row inline" style="align-items:flex-end;">
+                        <div>
+                            <label>현재 출석 코드</label>
+                            <input id="leaderCurrentCode" type="text"
+                                   readonly
+                                   style="font-weight:bold;text-align:center;letter-spacing:0.2em;">
+                        </div>
+                        <button type="submit">
+                            🎲 출석 코드 생성
+                        </button>
+                    </div>
+                    <div id="leaderCodeMsg"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const apiBase = '/api';
+
+    const params = new URLSearchParams(window.location.search);
+    const studyCode = params.get('code');
+
+    const headerCodeChip = document.getElementById('headerCodeChip');
+    const studyNameEl = document.getElementById('studyName');
+    const studyDescEl = document.getElementById('studyDesc');
+    const studyPenaltyEl = document.getElementById('studyPenalty');
+
+    const meForm = document.getElementById('meForm');
+    const meMsg = document.getElementById('meMsg');
+
+    const sessionTable = document.getElementById('sessionTable');
+    const sessionTbody = sessionTable.querySelector('tbody');
+    const sessionMsg = document.getElementById('sessionMsg');
+
+    const codeSection = document.getElementById('codeSection');
+    const selectedSessionLabel = document.getElementById('selectedSessionLabel');
+    const codeForm = document.getElementById('codeForm');
+    const codeMsg = document.getElementById('codeMsg');
+
+    const leaderCodeSection = document.getElementById('leaderCodeSection');
+    const leaderCodeForm = document.getElementById('leaderCodeForm');
+    const leaderCurrentCodeInput = document.getElementById('leaderCurrentCode');
+    const leaderCodeMsg = document.getElementById('leaderCodeMsg');
+
+    let studyInfo = null;
+    let sessions = [];
+    let currentParticipantId = null;
+    let currentName = null;
+    let currentPhone = null;
+    let selectedSession = null;
+    let isLeader = false;
+
+    // ----- 알림 렌더링 도우미 -----
+    function renderAlert(message, type = 'error', title) {
+        if (!message) return '';
+        const isError = type === 'error';
+        const isSuccess = type === 'success';
+        const cls = isError
+            ? 'alert alert-error'
+            : isSuccess
+                ? 'alert alert-success'
+                : 'alert alert-info';
+        const icon = isError ? '⚠️' : isSuccess ? '✅' : 'ℹ️';
+        const defaultTitle = isError
+            ? '요청 처리 중 오류'
+            : isSuccess
+                ? '완료되었습니다'
+                : '알림';
+
+        return `
+          <div class="${cls}">
+            <div class="alert-icon">${icon}</div>
+            <div class="alert-body">
+              <div class="alert-title">${title || defaultTitle}</div>
+              <div>${message}</div>
+            </div>
+          </div>
+        `;
+    }
+
+    function setAlertHtml(containerEl, message, type = 'error', title) {
+        if (!containerEl) return;
+        if (!message) {
+            containerEl.innerHTML = '';
+            return;
+        }
+        containerEl.innerHTML = renderAlert(message, type, title);
+    }
+
+    function setInfoMsg(el, msg, type) {
+        if (!msg) {
+            el.innerHTML = '';
+            return;
+        }
+        const t = type === 'success' ? 'success' :
+            type === 'error' ? 'error' : 'info';
+        setAlertHtml(el, msg, t);
+    }
+
+    function renderSessions(statusMap = {}) {
+        if (!sessions || sessions.length === 0) {
+            sessionTable.style.display = 'none';
+            sessionTbody.innerHTML = '';
+            sessionMsg.textContent = '등록된 세션이 없습니다.';
+            sessionMsg.className = 'text-sm';
+            return;
+        }
+
+        sessionTbody.innerHTML = '';
+        sessions.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.classList.add('session-row');
+            tr.dataset.sessionId = s.sessionId;
+            tr.dataset.sessionName = s.sessionName;
+
+            const status = statusMap[s.sessionId] || 'NONE';
+            const pillClass = 'pill-' + status;
+            const statusText =
+                status === 'ATTEND' ? '출석' :
+                    status === 'LATE'   ? '지각' :
+                        status === 'ABSENT' ? '결석' : '확인 전';
+
+            tr.innerHTML = `
+                <td>${s.sessionName}</td>
+                <td>${s.sessionWeek ?? '-'}</td>
+                <td>${s.sessionDate ?? '-'}</td>
+                <td><span class="pill ${pillClass}">${statusText}</span></td>
+            `;
+
+            tr.addEventListener('click', () => {
+                selectedSession = s;
+                selectedSessionLabel.textContent =
+                    `${s.sessionName}${s.sessionWeek ? ' (' + s.sessionWeek + '주차)' : ''}`;
+                codeSection.style.display = 'block';
+                setInfoMsg(codeMsg, '', '');
+
+                if (isLeader) {
+                    leaderCodeSection.style.display = 'block';
+                    setInfoMsg(leaderCodeMsg, '', '');
+                }
+            });
+
+            sessionTbody.appendChild(tr);
+        });
+
+        sessionTable.style.display = 'table';
+        sessionMsg.textContent = '';
+    }
+
+    async function loadStudyAndSessions() {
+        if (!studyCode) {
+            headerCodeChip.textContent = '코드 없음';
+            studyNameEl.textContent = '코드가 없습니다.';
+            studyDescEl.textContent = 'index.html에서 스터디 코드를 입력해 접속해주세요.';
+            studyPenaltyEl.textContent = '';
+            return;
+        }
+
+        headerCodeChip.textContent = `코드 ${studyCode}`;
+
+        try {
+            const infoRes = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}`);
+            if (!infoRes.ok) {
+                const text = await infoRes.text();
+                throw new Error(text || '스터디 정보를 불러오지 못했습니다.');
+            }
+            studyInfo = await infoRes.json();
+            studyNameEl.textContent = studyInfo.name || '이름 없는 스터디';
+            studyDescEl.textContent = studyInfo.description || '스터디 설명이 없습니다.';
+
+            const late = studyInfo.latePenalty ?? 0;
+            const absent = studyInfo.absentPenalty ?? 0;
+            studyPenaltyEl.textContent = `⏰ 지각 벌금: ${late}원 · 🚫 결석 벌금: ${absent}원`;
+
+            const sessionsRes = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions`);
+            if (!sessionsRes.ok) {
+                const text = await sessionsRes.text();
+                throw new Error(text || '세션 목록을 불러오지 못했습니다.');
+            }
+            sessions = await sessionsRes.json();
+            renderSessions();
+        } catch (err) {
+            sessionTable.style.display = 'none';
+            sessionTbody.innerHTML = '';
+            setInfoMsg(sessionMsg, err.message, 'error');
+        }
+    }
+
+    async function loadMyStatuses() {
+        if (!currentParticipantId) {
+            throw new Error('참가자 정보가 없어 출석 내역을 불러올 수 없습니다.');
+        }
+        if (!sessions || sessions.length === 0) {
+            throw new Error('세션이 없어 출석을 확인할 수 없습니다.');
+        }
+
+        const statusMap = {};
+        for (const s of sessions) {
+            const attRes = await fetch(
+                `${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${s.sessionId}/attendances`
+            );
+            if (!attRes.ok) {
+                const text = await attRes.text();
+                throw new Error(text || `세션(${s.sessionName}) 출석 조회에 실패했습니다.`);
+            }
+            const atts = await attRes.json();
+            const myAtt = (atts || []).find(a => a.participantId === currentParticipantId);
+            statusMap[s.sessionId] = myAtt ? myAtt.status : 'NONE';
+        }
+
+        renderSessions(statusMap);
+    }
+
+    // 내 정보 입력 → 나의 출석 불러오기 + 리더 판단
+    meForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setInfoMsg(meMsg, '', '');
+        leaderCodeSection.style.display = 'none';
+        isLeader = false;
+
+        if (!studyInfo) {
+            setInfoMsg(meMsg, '스터디 정보를 먼저 불러오는 중입니다. 잠시 후 다시 시도해주세요.', 'error');
+            return;
+        }
+
+        const formData = new FormData(meForm);
+        const name = (formData.get('name') || '').trim();
+        const phone = (formData.get('phone') || '').trim();
+
+        if (!name || !phone) {
+            setInfoMsg(meMsg, '이름과 전화번호를 모두 입력해주세요.', 'error');
+            return;
+        }
+
+        const leaderName = (studyInfo.leaderName || '').trim();
+        const leaderPhone = (studyInfo.leaderPhone || '').trim();
+        const isLeaderByInfo = leaderName === name && leaderPhone === phone;
+
+        const me = (studyInfo.participants || []).find(p =>
+            (p.name === name || p.participantName === name) &&
+            (p.phone === phone || p.participantPhone === phone)
+        );
+
+        if (!me && !isLeaderByInfo) {
+            setInfoMsg(meMsg, '해당 이름/전화번호의 참가자를 찾을 수 없습니다.', 'error');
+            return;
+        }
+
+        currentParticipantId = me ? (me.id || me.participantId) : null;
+        currentName = name;
+        currentPhone = phone;
+
+        const role = me && (me.role || me.participantRole || me.roleName);
+        isLeader =
+            isLeaderByInfo ||
+            role === 'LEADER' ||
+            role === 'LEADER_PARTICIPANT';
+
+        try {
+            if (currentParticipantId) {
+                await loadMyStatuses();
+                setInfoMsg(
+                    meMsg,
+                    isLeader
+                        ? '리더로 접속했습니다. (출석 정보도 불러왔어요.)'
+                        : '나의 출석 정보가 반영되었습니다.',
+                    'success'
+                );
+            } else if (isLeader) {
+                setInfoMsg(
+                    meMsg,
+                    '리더로 접속했습니다. (참여자 등록이 되어 있지 않아 출석 내역은 없습니다.)',
+                    'success'
+                );
+            }
+
+            if (isLeader && selectedSession) {
+                leaderCodeSection.style.display = 'block';
+            }
+        } catch (err) {
+            setInfoMsg(meMsg, err.message, 'error');
+        }
+    });
+
+    // 선택된 세션에 코드로 출석 처리
+    codeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setInfoMsg(codeMsg, '', '');
+
+        if (!selectedSession) {
+            setInfoMsg(codeMsg, '먼저 출석할 세션을 선택해주세요.', 'error');
+            return;
+        }
+        if (!currentName || !currentPhone) {
+            setInfoMsg(codeMsg, '위에서 내 정보를 입력하고 "내 출석 불러오기"를 먼저 실행해주세요.', 'error');
+            return;
+        }
+
+        const formData = new FormData(codeForm);
+        const code = (formData.get('attendCode') || '').trim();
+
+        if (!code || !/^\d{4}$/.test(code)) {
+            setInfoMsg(codeMsg, '4자리 숫자 코드를 입력해주세요.', 'error');
+            return;
+        }
+
+        if (!selectedSession.sessionDate) {
+            setInfoMsg(codeMsg, '세션 날짜 정보가 없어 출석 상태를 판단할 수 없습니다.', 'error');
+            return;
+        }
+
+        const start = new Date(selectedSession.sessionDate);
+        if (isNaN(start.getTime())) {
+            setInfoMsg(codeMsg, '세션 날짜 형식이 올바르지 않습니다.', 'error');
+            return;
+        }
+
+        const now = new Date();
+        const diffMinutes = (now.getTime() - start.getTime()) / 60000;
+
+        let status;
+        if (diffMinutes <= 15) {
+            status = 'ATTEND';
+        } else if (diffMinutes <= 60) {
+            status = 'LATE';
+        } else {
+            status = 'ABSENT';
+        }
+
+        try {
+            const res = await fetch(
+                `${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${selectedSession.sessionId}/attendances/self-check-in`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: currentName,
+                        phone: currentPhone,
+                        code: code,
+                        status: status
+                    })
+                }
+            );
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석 처리에 실패했습니다.');
+            }
+
+            if (currentParticipantId) {
+                await loadMyStatuses();
+            }
+
+            const statusMsg =
+                status === 'ATTEND' ? '출석으로 처리되었습니다.' :
+                    status === 'LATE'   ? '지각으로 처리되었습니다.' :
+                        '결석으로 처리되었습니다.';
+
+            setInfoMsg(codeMsg, statusMsg, 'success');
+            codeForm.reset();
+        } catch (err) {
+            setInfoMsg(codeMsg, err.message, 'error');
+        }
+    });
+
+    // 리더 전용 출석 코드 생성
+    leaderCodeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setInfoMsg(leaderCodeMsg, '', '');
+
+        if (!isLeader) {
+            setInfoMsg(leaderCodeMsg, '리더만 출석 코드를 생성할 수 있습니다.', 'error');
+            return;
+        }
+        if (!selectedSession) {
+            setInfoMsg(leaderCodeMsg, '먼저 출석 코드를 생성할 세션을 선택해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(
+                `${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${selectedSession.sessionId}/attendances/code`,
+                { method: 'POST' }
+            );
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석 코드 생성에 실패했습니다.');
+            }
+
+            const data = await res.json();
+            leaderCurrentCodeInput.value = data.code || '';
+
+            setInfoMsg(leaderCodeMsg, '출석 코드가 생성되었습니다.', 'success');
+        } catch (err) {
+            setInfoMsg(leaderCodeMsg, err.message, 'error');
+        }
+    });
+
+    loadStudyAndSessions();
+</script>
+</body>
+</html>

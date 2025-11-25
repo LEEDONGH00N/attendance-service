@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>스터디 출석 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #eff6ff 0, #f9fafb 45%, #f3f4f6 100%);
+            --primary: #2563eb;
+            --primary-soft: #dbeafe;
+            --border-subtle: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --danger: #b91c1c;
+            --success: #15803d;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background: var(--bg-gradient);
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; }
+
+        .page-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: rgba(15,23,42,0.9);
+            color: #f9fafb;
+            padding: 12px 16px;
+            box-shadow: 0 1px 8px rgba(15,23,42,0.4);
+        }
+        header .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        header h1 span.logo-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            font-size: 15px;
+        }
+        header .subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        h2 .section-mark {
+            width: 4px;
+            height: 18px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #60a5fa, #2563eb);
+            display: inline-block;
+        }
+
+        p { margin: 4px 0; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: 0 12px 30px rgba(15,23,42,0.08);
+            margin-bottom: 18px;
+            border: 1px solid rgba(148,163,184,0.18);
+        }
+
+        .chips-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .chip {
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 11px;
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 14px 0 18px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.6);
+            background: rgba(248,250,252,0.8);
+            cursor: pointer;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #374151;
+        }
+        .tab-btn span.icon {
+            font-size: 15px;
+        }
+        .tab-btn.active {
+            background: #1d4ed8;
+            color: #f9fafb;
+            border-color: #1d4ed8;
+            box-shadow: 0 8px 18px rgba(37,99,235,0.45);
+        }
+        .tab-btn.active span.icon {
+            transform: translateY(-1px);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .form-row label {
+            font-size: 13px;
+            flex-basis: 100%;
+            color: var(--text-muted);
+        }
+        input, select {
+            padding: 7px 9px;
+            border-radius: 8px;
+            border: 1px solid #d4d4d8;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+            background: #eff6ff;
+        }
+
+        button {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 8px 16px rgba(37,99,235,0.45);
+            transition: transform .1s ease-out, box-shadow .1s ease-out, background .15s;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(37,99,235,0.5);
+            background: #1d4ed8;
+        }
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 6px 12px rgba(37,99,235,0.4);
+        }
+        button.secondary {
+            background: #e5e7eb;
+            color: #111827;
+            box-shadow: none;
+        }
+        button.secondary:hover:not(:disabled) {
+            background: #d1d5db;
+        }
+        button:disabled { opacity: 0.65; cursor: default; box-shadow: none; }
+
+        .text-sm { font-size: 13px; }
+        .text-xs { font-size: 12px; }
+        .text-muted { color: var(--text-muted); }
+        .mt-4 { margin-top: 4px; }
+        .mt-6 { margin-top: 6px; }
+        .mt-8 { margin-top: 8px; }
+        .mt-12 { margin-top: 12px; }
+        .mt-16 { margin-top: 16px; }
+        .mt-20 { margin-top: 20px; }
+        .mt-24 { margin-top: 24px; }
+
+        .flex { display: flex; gap: 8px; flex-wrap: wrap; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+        .badge {
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: #ecfeff;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+        }
+        .badge.admin {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-color: #c7d2fe;
+        }
+
+        .error { color: var(--danger); font-size: 13px; margin-top: 4px; }
+        .success { color: var(--success); font-size: 13px; margin-top: 4px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        th, td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 7px 6px;
+            text-align: left;
+        }
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+        tbody tr:nth-child(even) { background: #f9fafb; }
+        tbody tr:hover { background: #eff6ff; }
+        .text-right { text-align: right; }
+
+        .pill {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        .pill-ATTEND { background: #dcfce7; color: #166534; }
+        .pill-LATE { background: #fef9c3; color: #92400e; }
+        .pill-ABSENT { background: #fee2e2; color: #b91c1c; }
+        .pill-NONE { background: #e5e7eb; color: #4b5563; }
+
+        .divider {
+            border: none;
+            border-top: 1px dashed #e5e7eb;
+            margin: 16px 0;
+        }
+
+        .mini-label {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        @media (min-width: 640px) {
+            .form-row.inline > * { flex: 1; }
+        }
+
+        .study-card {
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+        }
+        .study-header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .study-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .study-code-pill {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: #1d4ed8;
+            color: #f9fafb;
+        }
+        .study-desc {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        .study-penalties {
+            margin-top: 10px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+        .study-penalties span {
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #f9fafb;
+            border: 1px dashed #cbd5f5;
+        }
+        .participant-list {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .participant-list-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+        .participant-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: #2563eb;
+            color: #f9fafb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .participant-phone {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* ===== 공통 알림 컴포넌트 ===== */
+        .alert {
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        .alert-icon {
+            font-size: 16px;
+            line-height: 1;
+            margin-top: 2px;
+        }
+        .alert-body {
+            flex: 1;
+        }
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        .alert-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        /* 스터디 코드 복사 버튼 */
+        .copy-btn {
+            margin-left: 8px;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 999px;
+            border: none;
+            background: #334155;
+            color: #f9fafb;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(15,23,42,0.3);
+        }
+        .copy-btn:hover {
+            background: #1f2937;
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header>
+        <div class="header-inner">
+            <div>
+                <h1>
+                    <span class="logo-badge">ST</span>
+                    스터디 출석 관리
+                </h1>
+                <div class="subtitle">리더·참여자 모두 편하게 쓰는 가벼운 출석 관리 도구</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <div class="flex-between">
+                <h2>
+                    <span class="section-mark"></span>
+                    공통 설정
+                </h2>
+                <span class="mini-label">GLOBAL CONTEXT</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                아래 스터디 코드는 세션·출석 등 대부분의 기능에서 공통으로 사용됩니다.
+                (스터디 생성 후 발급된 code를 입력)
+            </p>
+            <div class="form-row inline mt-8">
+                <div style="flex:1">
+                    <label for="commonStudyCode">스터디 코드</label>
+                    <input id="commonStudyCode" type="text" placeholder="예: ABC123">
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-study">
+                <span class="icon">📘</span><span>스터디 생성/조회</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-join">
+                <span class="icon">👥</span><span>스터디 참가</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-session">
+                <span class="icon">📅</span><span>세션 생성/조회</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-attendance">
+                <span class="icon">✅</span><span>출석 관리</span>
+            </button>
+        </div>
+
+        <!-- 스터디 생성/조회 -->
+        <section id="tab-study" class="card">
+            <div class="flex-between">
+                <h2><span class="section-mark"></span>스터디 생성</h2>
+                <span class="badge admin">리더 전용</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                스터디를 생성하면 고유 코드가 발급됩니다. 이 코드를 참여자에게 공유하세요.
+            </p>
+            <form id="studyCreateForm" class="mt-12">
+                <div class="form-row inline">
+                    <div>
+                        <label>스터디 이름 *</label>
+                        <input name="name" type="text" required placeholder="예: 알고리즘 스터디">
+                    </div>
+                    <div>
+                        <label>설명</label>
+                        <input name="description" type="text" placeholder="예: 주 1회, 온라인 진행">
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>리더 이름 *</label>
+                        <input name="leaderName" type="text" required placeholder="예: 김리더">
+                    </div>
+                    <div>
+                        <label>리더 연락처 *</label>
+                        <input name="leaderPhone" type="text" required placeholder="예: 01012345678">
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>리더 비밀번호</label>
+                        <input name="leaderPassword" type="password" placeholder="출석 수정 등에 사용할 비밀번호">
+                    </div>
+                    <div>
+                        <label>지각 벌금(원)</label>
+                        <input name="latePenalty" type="number" placeholder="예: 3000">
+                    </div>
+                    <div>
+                        <label>결석 벌금(원)</label>
+                        <input name="absentPenalty" type="number" placeholder="예: 5000">
+                    </div>
+                </div>
+                <button type="submit" class="mt-12">
+                    <span>➕</span> 스터디 생성
+                </button>
+                <div id="studyCreateMsg" class="mt-4 text-sm"></div>
+            </form>
+
+            <hr class="divider">
+
+            <h2 class="mt-8"><span class="section-mark"></span>스터디 조회</h2>
+            <p class="text-xs text-muted mt-4">코드를 입력하면 스터디 정보와 참여자를 확인할 수 있습니다.</p>
+            <div class="form-row inline mt-8">
+                <div style="flex:1">
+                    <label for="studyInfoCode">스터디 코드</label>
+                    <input id="studyInfoCode" type="text" placeholder="예: ABC123">
+                </div>
+                <div style="align-self:flex-end;">
+                    <button id="loadStudyInfoBtn" type="button" class="secondary">
+                        🔍 조회
+                    </button>
+                </div>
+            </div>
+            <div id="studyInfo" class="mt-8 text-sm"></div>
+        </section>
+
+        <!-- 스터디 참가 -->
+        <section id="tab-join" class="card" style="display:none">
+            <div class="flex-between">
+                <h2><span class="section-mark"></span>스터디 참가</h2>
+                <span class="badge">참여자용</span>
+            </div>
+
+            <p class="text-xs text-muted mt-4">
+                리더에게 받은 스터디 코드와 본인 정보를 입력해 참가합니다.
+            </p>
+
+            <form id="joinForm" class="mt-12">
+                <div class="form-row inline">
+                    <div>
+                        <label>스터디 코드 *</label>
+                        <input name="studyCode" type="text" required placeholder="예: ABC123">
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>이름 *</label>
+                        <input name="name" type="text" required>
+                    </div>
+                    <div>
+                        <label>전화번호 *</label>
+                        <input name="phone" type="text" required>
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>비밀번호 *</label>
+                        <input name="password" type="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="mt-12">
+                    🙋 스터디 참가하기
+                </button>
+                <div id="joinMsg" class="mt-4 text-sm"></div>
+            </form>
+        </section>
+
+        <!-- 세션 생성/조회 -->
+        <section id="tab-session" class="card" style="display:none">
+            <div class="flex-between">
+                <h2><span class="section-mark"></span>세션 생성</h2>
+                <span class="badge admin">리더 전용</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                ※ 위 공통 설정의 스터디 코드가 사용됩니다. 주차/날짜 정보를 기반으로 세션을 등록합니다.
+            </p>
+
+            <form id="sessionCreateForm" class="mt-12">
+                <div class="form-row inline">
+                    <div>
+                        <label>세션 이름</label>
+                        <input name="name" type="text" placeholder="예: 1주차 알고리즘">
+                    </div>
+                    <div>
+                        <label>주차</label>
+                        <input name="week" type="number" placeholder="예: 1">
+                    </div>
+                    <div>
+                        <label>날짜/시간</label>
+                        <input name="startAt" type="datetime-local">
+                    </div>
+                </div>
+                <button type="submit" class="mt-12">
+                    🗓 세션 생성
+                </button>
+                <div id="sessionCreateMsg" class="mt-4 text-sm"></div>
+            </form>
+
+            <hr class="divider">
+
+            <div class="flex-between mt-8">
+                <h2><span class="section-mark"></span>세션 목록</h2>
+                <button id="loadSessionsBtn" type="button" class="secondary">
+                    📂 세션 목록 불러오기
+                </button>
+            </div>
+            <div id="sessionsMsg" class="mt-4 text-sm"></div>
+            <table id="sessionsTable" style="display:none" class="mt-8">
+                <thead>
+                <tr>
+                    <th>세션 ID</th>
+                    <th>세션 이름</th>
+                    <th>주차</th>
+                    <th>날짜</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <!-- 출석 관리 -->
+        <section id="tab-attendance" class="card" style="display:none">
+            <div class="flex-between">
+                <h2><span class="section-mark"></span>세션 출석 관리</h2>
+                <span class="badge admin">리더용</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                1) 공통 설정에 스터디 코드를 입력하고<br>
+                2) 세션 ID 로 출석부를 불러온 뒤, 리더 비밀번호를 이용해 출석 상태를 변경합니다.
+            </p>
+
+            <div class="form-row inline mt-10">
+                <div>
+                    <label for="attSessionId">세션 ID *</label>
+                    <input id="attSessionId" type="number" placeholder="예: 1">
+                </div>
+                <div style="align-self:flex-end;">
+                    <button id="loadAttendancesBtn" type="button">
+                        📋 출석부 불러오기
+                    </button>
+                </div>
+            </div>
+            <div class="form-row inline mt-4">
+                <div>
+                    <label for="leaderPassword">리더 비밀번호 (출석 수정 시 사용)</label>
+                    <input id="leaderPassword" type="password" placeholder="스터디 생성 시 입력한 leaderPassword">
+                </div>
+            </div>
+
+            <div id="attendancesMsg" class="mt-4 text-sm"></div>
+
+            <table id="attendanceTable" style="display:none" class="mt-8">
+                <thead>
+                <tr>
+                    <th>참여자 ID</th>
+                    <th>이름</th>
+                    <th>전화번호</th>
+                    <th>현재 상태</th>
+                    <th>변경</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <hr class="divider">
+
+            <div class="flex-between">
+                <h3 style="margin:0;font-size:15px;display:flex;align-items:center;gap:6px;">
+                    🔐 출석 코드 &amp; 참여자 입력
+                </h3>
+                <span class="mini-label">CODE CHECK-IN</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                리더가 4자리 출석 코드를 생성해 공유하고, 참여자는 이름·전화번호·코드를 입력해 출석을 찍습니다.
+                (서버에서 코드 유효 시간/지각 여부까지 검증하도록 확장 가능)
+            </p>
+
+            <div class="form-row inline mt-8">
+                <div>
+                    <label>현재 출석 코드</label>
+                    <input id="currentAttendanceCode" type="text" readonly
+                           style="font-weight:bold;font-size:20px;text-align:center;letter-spacing:0.2em;">
+                </div>
+                <div style="align-self:flex-end;">
+                    <button id="generateCodeBtn" type="button" class="secondary">
+                        🎲 출석 코드 생성
+                    </button>
+                </div>
+            </div>
+            <div id="codeMsg" class="mt-4 text-sm"></div>
+
+            <div class="card" style="margin-top:16px;padding:12px 14px;border-radius:10px;border:1px solid var(--border-subtle);box-shadow:none;background:#f9fafb;">
+                <h4 style="margin:0 0 6px;font-size:14px;">참여자 출석 입력</h4>
+                <p class="text-xs text-muted">
+                    * 실제 서비스에서는 별도 참여자 전용 페이지(user.html)에서 이 API를 호출해도 됩니다.
+                </p>
+                <form id="codeCheckinForm" class="mt-8">
+                    <div class="form-row inline">
+                        <div>
+                            <label>이름 *</label>
+                            <input name="name" type="text" required placeholder="예: 홍길동">
+                        </div>
+                        <div>
+                            <label>전화번호 *</label>
+                            <input name="phone" type="text" required placeholder="예: 01012345678">
+                        </div>
+                    </div>
+                    <div class="form-row inline mt-4">
+                        <div>
+                            <label>출석 코드 *</label>
+                            <input name="code" type="text" required maxlength="4" placeholder="4자리 숫자">
+                        </div>
+                    </div>
+                    <button type="submit" class="mt-8">
+                        ✅ 출석하기
+                    </button>
+                    <div id="codeCheckinMsg" class="mt-4 text-sm"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const apiBase = '/api';
+
+    function getCommonStudyCode() {
+        return document.getElementById('commonStudyCode').value.trim();
+    }
+
+    function formatLocalDateTime(value) {
+        if (!value) return '-';
+        const text = String(value).replace('T', ' ');
+        return text.length >= 16 ? text.substring(0, 16) : text;
+    }
+
+    // ===== 공통 알림 렌더링 함수 =====
+    function renderAlert(message, type = 'error', title) {
+        if (!message) return '';
+        const isError = type === 'error';
+        const isSuccess = type === 'success';
+        const cls = isError
+            ? 'alert alert-error'
+            : isSuccess
+                ? 'alert alert-success'
+                : 'alert alert-info';
+        const icon = isError ? '⚠️' : isSuccess ? '✅' : 'ℹ️';
+        const defaultTitle = isError
+            ? '요청 처리 중 오류'
+            : isSuccess
+                ? '완료되었습니다'
+                : '알림';
+
+        return `
+          <div class="${cls}">
+            <div class="alert-icon">${icon}</div>
+            <div class="alert-body">
+              <div class="alert-title">${title || defaultTitle}</div>
+              <div>${message}</div>
+            </div>
+          </div>
+        `;
+    }
+
+    function setAlertHtml(containerEl, message, type = 'error', title) {
+        if (!containerEl) return;
+        if (!message) {
+            containerEl.innerHTML = '';
+            return;
+        }
+        containerEl.innerHTML = renderAlert(message, type, title);
+    }
+
+    // 탭 전환
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('section.card');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const target = btn.dataset.tab;
+            sections.forEach(sec => {
+                sec.style.display = (sec.id === target) ? 'block' : 'none';
+            });
+        });
+    });
+
+    function setMessage(el, msg, type) {
+        if (!msg) {
+            el.innerHTML = '';
+            return;
+        }
+        const t = type === 'success' ? 'success' :
+            type === 'error' ? 'error' : 'info';
+        setAlertHtml(el, msg, t);
+    }
+
+    // ===== 스터디 생성 =====
+    const studyCreateForm = document.getElementById('studyCreateForm');
+    const studyCreateMsg = document.getElementById('studyCreateMsg');
+
+    studyCreateForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setMessage(studyCreateMsg, '', '');
+
+        const formData = new FormData(studyCreateForm);
+        const body = {
+            name: formData.get('name') || null,
+            description: formData.get('description') || null,
+            leaderName: formData.get('leaderName') || null,
+            leaderPhone: formData.get('leaderPhone') || null,
+            leaderPassword: formData.get('leaderPassword') || null,
+            latePenalty: formData.get('latePenalty') ? Number(formData.get('latePenalty')) : null,
+            absentPenalty: formData.get('absentPenalty') ? Number(formData.get('absentPenalty')) : null
+        };
+
+        try {
+            const res = await fetch(`${apiBase}/studies`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '스터디 생성에 실패했습니다.');
+            }
+            const data = await res.json(); // StudyCreateResDto
+            const code = data.code;
+
+            document.getElementById('commonStudyCode').value = code;
+
+            // ✅ 생성 완료 메시지 + 코드 복사 버튼
+            setMessage(
+                studyCreateMsg,
+                `생성 완료! 스터디 코드: <strong>${code}</strong>
+                 <button type="button" class="copy-btn"
+                     onclick="navigator.clipboard.writeText('${code}')
+                         .then(() => alert('스터디 코드가 복사되었습니다.'))
+                         .catch(() => alert('복사에 실패했습니다. 브라우저 권한을 확인해주세요.'));">
+                     📋 복사
+                 </button>`,
+                'success'
+            );
+        } catch (err) {
+            setMessage(studyCreateMsg, err.message, 'error');
+        }
+    });
+
+    // ===== 스터디 조회 =====
+    const studyInfoCodeInput = document.getElementById('studyInfoCode');
+    const loadStudyInfoBtn = document.getElementById('loadStudyInfoBtn');
+    const studyInfoEl = document.getElementById('studyInfo');
+
+    loadStudyInfoBtn.addEventListener('click', async () => {
+        const code = studyInfoCodeInput.value.trim();
+        if (!code) {
+            setMessage(studyInfoEl, '스터디 코드를 입력해주세요.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(code)}`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '스터디 조회에 실패했습니다.');
+            }
+            const data = await res.json(); // StudyInfoResDto
+
+            let html = `
+              <div class="study-card">
+                <div class="study-header-line">
+                  <div class="study-title">${data.name}</div>
+                  <div class="study-code-pill">스터디 코드: ${code}</div>
+                </div>
+                <div class="study-desc">${data.description || '설명이 없습니다.'}</div>
+                <div class="study-penalties">
+                  <span>⏰ 지각 벌금: <strong>${data.latePenalty ?? 0}</strong>원</span>
+                  <span>🚫 결석 벌금: <strong>${data.absentPenalty ?? 0}</strong>원</span>
+                </div>
+                <div class="participant-list">
+                  <div class="participant-list-title">참여자 목록</div>
+            `;
+
+            if (data.participants && data.participants.length > 0) {
+                data.participants.forEach(p => {
+                    const pName = p.name || p.participantName || '';
+                    const pPhone = p.phone || p.participantPhone || '';
+                    const initial = pName ? pName[0] : '?';
+                    html += `
+                      <div class="participant-item">
+                        <div class="participant-avatar">${initial}</div>
+                        <div>
+                          <div>${pName}</div>
+                          <div class="participant-phone">${pPhone}</div>
+                        </div>
+                      </div>
+                    `;
+                });
+            } else {
+                html += `
+                  <div class="text-sm text-muted" style="margin-top:4px;">
+                    아직 참여자가 없습니다.
+                  </div>
+                `;
+            }
+
+            html += `</div></div>`;
+            studyInfoEl.innerHTML = html;
+        } catch (err) {
+            setMessage(studyInfoEl, err.message, 'error');
+        }
+    });
+
+    // ===== 스터디 참가 =====
+    const joinForm = document.getElementById('joinForm');
+    const joinMsg = document.getElementById('joinMsg');
+
+    joinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setMessage(joinMsg, '', '');
+        const formData = new FormData(joinForm);
+
+        const studyCode = (formData.get('studyCode') || '').trim();
+        if (!studyCode) {
+            setMessage(joinMsg, '스터디 코드를 입력해주세요.', 'error');
+            return;
+        }
+
+        const body = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            password: formData.get('password')
+        };
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/join`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '스터디 참가에 실패했습니다.');
+            }
+            setMessage(joinMsg, '참가 완료!', 'success');
+            joinForm.reset();
+        } catch (err) {
+            setMessage(joinMsg, err.message, 'error');
+        }
+    });
+
+    // ===== 세션 생성 =====
+    const sessionCreateForm = document.getElementById('sessionCreateForm');
+    const sessionCreateMsg = document.getElementById('sessionCreateMsg');
+
+    sessionCreateForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setMessage(sessionCreateMsg, '', '');
+        const studyCode = getCommonStudyCode();
+        if (!studyCode) {
+            setMessage(sessionCreateMsg, '공통 설정의 스터디 코드를 먼저 입력해주세요.', 'error');
+            return;
+        }
+
+        const formData = new FormData(sessionCreateForm);
+        const raw = formData.get('startAt');
+        console.log('startAt raw from form =', raw);
+
+        const body = {
+            name: formData.get('name') || null,
+            week: formData.get('week') ? Number(formData.get('week')) : null,
+            startAt: raw || null
+        };
+        console.log('request body =', body);
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '세션 생성에 실패했습니다.');
+            }
+            setMessage(sessionCreateMsg, '세션 생성 완료!', 'success');
+            sessionCreateForm.reset();
+        } catch (err) {
+            setMessage(sessionCreateMsg, err.message, 'error');
+        }
+    });
+
+    // ===== 세션 목록 조회 =====
+    const loadSessionsBtn = document.getElementById('loadSessionsBtn');
+    const sessionsMsg = document.getElementById('sessionsMsg');
+    const sessionsTable = document.getElementById('sessionsTable');
+    const sessionsTbody = sessionsTable.querySelector('tbody');
+
+    loadSessionsBtn.addEventListener('click', async () => {
+        setMessage(sessionsMsg, '', '');
+        sessionsTable.style.display = 'none';
+        sessionsTbody.innerHTML = '';
+
+        const studyCode = getCommonStudyCode();
+        if (!studyCode) {
+            setMessage(sessionsMsg, '공통 설정의 스터디 코드를 먼저 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '세션 목록 조회에 실패했습니다.');
+            }
+
+            const data = await res.json(); // List<StudySessionInfoResDto>
+
+            if (!data.length) {
+                setMessage(sessionsMsg, '등록된 세션이 없습니다.', 'info');
+                return;
+            }
+
+            data.forEach(s => {
+                const rawDateTime = s.sessionDate; // LocalDateTime
+                const formatted = formatLocalDateTime(rawDateTime);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.sessionId}</td>
+                    <td>${s.sessionName}</td>
+                    <td>${s.sessionWeek ?? '-'}</td>
+                    <td>${formatted}</td>
+                `;
+                sessionsTbody.appendChild(tr);
+            });
+
+            sessionsTable.style.display = 'table';
+        } catch (err) {
+            setMessage(sessionsMsg, err.message, 'error');
+        }
+    });
+
+    // ===== 출석 관리 =====
+    const loadAttendancesBtn = document.getElementById('loadAttendancesBtn');
+    const attendancesMsg = document.getElementById('attendancesMsg');
+    const attendanceTable = document.getElementById('attendanceTable');
+    const attendanceTbody = attendanceTable.querySelector('tbody');
+    const attSessionIdInput = document.getElementById('attSessionId');
+    const leaderPasswordInput = document.getElementById('leaderPassword');
+
+    loadAttendancesBtn.addEventListener('click', async () => {
+        setMessage(attendancesMsg, '', '');
+        attendanceTable.style.display = 'none';
+        attendanceTbody.innerHTML = '';
+
+        const studyCode = getCommonStudyCode();
+        const sessionId = attSessionIdInput.value.trim();
+        if (!studyCode || !sessionId) {
+            setMessage(attendancesMsg, '스터디 코드와 세션 ID를 모두 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${sessionId}/attendances`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석부 조회에 실패했습니다.');
+            }
+            const data = await res.json(); // List<AttendanceBySessionResDto>
+            if (!data.length) {
+                setMessage(attendancesMsg, '출석 데이터가 없습니다.', 'info');
+                return;
+            }
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                const statusBadge = document.createElement('span');
+                statusBadge.classList.add('pill', `pill-${row.status || 'NONE'}`);
+                statusBadge.textContent = row.status || 'NONE';
+
+                const select = document.createElement('select');
+                ['ATTEND', 'LATE', 'ABSENT'].forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v;
+                    opt.textContent = v;
+                    if (v === row.status) opt.selected = true;
+                    select.appendChild(opt);
+                });
+
+                select.addEventListener('change', () => {
+                    updateAttendance(studyCode, sessionId, row.participantId, select.value, statusBadge);
+                });
+
+                tr.innerHTML = `
+                    <td>${row.participantId}</td>
+                    <td>${row.name}</td>
+                    <td>${row.phone}</td>
+                `;
+                const tdStatus = document.createElement('td');
+                tdStatus.appendChild(statusBadge);
+                const tdSelect = document.createElement('td');
+                tdSelect.appendChild(select);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdSelect);
+                attendanceTbody.appendChild(tr);
+            });
+
+            attendanceTable.style.display = 'table';
+        } catch (err) {
+            setMessage(attendancesMsg, err.message, 'error');
+        }
+    });
+
+    async function updateAttendance(studyCode, sessionId, participantId, newStatus, badgeEl) {
+        const password = leaderPasswordInput.value.trim();
+        if (!password) {
+            alert('리더 비밀번호를 먼저 입력해주세요.');
+            return;
+        }
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${sessionId}/attendances/${participantId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password, status: newStatus })
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석 상태 변경에 실패했습니다.');
+            }
+            badgeEl.className = `pill pill-${newStatus}`;
+            badgeEl.textContent = newStatus;
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    // ===== 출석 코드 + 참여자 코드 입력 =====
+    const generateCodeBtn = document.getElementById('generateCodeBtn');
+    const currentAttendanceCodeInput = document.getElementById('currentAttendanceCode');
+    const codeMsg = document.getElementById('codeMsg');
+    const codeCheckinForm = document.getElementById('codeCheckinForm');
+    const codeCheckinMsg = document.getElementById('codeCheckinMsg');
+
+    let currentAttendanceCode = null;
+
+    function setCodeMsg(msg, type) {
+        if (!msg) {
+            codeMsg.innerHTML = '';
+            return;
+        }
+        const t = type === 'success' ? 'success' :
+            type === 'error' ? 'error' : 'info';
+        setAlertHtml(codeMsg, msg, t);
+    }
+
+    function setCheckinMsg(msg, type) {
+        if (!msg) {
+            codeCheckinMsg.innerHTML = '';
+            return;
+        }
+        const t = type === 'success' ? 'success' :
+            type === 'error' ? 'error' : 'info';
+        setAlertHtml(codeCheckinMsg, msg, t);
+    }
+
+    generateCodeBtn.addEventListener('click', async () => {
+        setCodeMsg('', '');
+        const studyCode = getCommonStudyCode();
+        const sessionId = attSessionIdInput.value.trim();
+
+        if (!studyCode || !sessionId) {
+            setCodeMsg('먼저 스터디 코드와 세션 ID를 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(
+                `${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${sessionId}/attendances/code`,
+                { method: 'POST' }
+            );
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석 코드 생성에 실패했습니다.');
+            }
+            const data = await res.json(); // AttendanceCodeResDto { code, expiresAt }
+
+            currentAttendanceCode = data.code;
+            currentAttendanceCodeInput.value = data.code;
+
+            const expiresText = data.expiresAt
+                ? data.expiresAt.replace('T', ' ')
+                : '알 수 없음';
+
+            setCodeMsg(`출석 코드가 생성되었습니다. (만료 시각: ${expiresText})`, 'success');
+        } catch (err) {
+            setCodeMsg(err.message, 'error');
+        }
+    });
+
+    codeCheckinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setCheckinMsg('', '');
+
+        const studyCode = getCommonStudyCode();
+        const sessionId = attSessionIdInput.value.trim();
+
+        if (!studyCode || !sessionId) {
+            setCheckinMsg('먼저 상단에서 스터디 코드와 세션 ID를 입력해주세요.', 'error');
+            return;
+        }
+
+        const formData = new FormData(codeCheckinForm);
+        const name = (formData.get('name') || '').trim();
+        const phone = (formData.get('phone') || '').trim();
+        const code = (formData.get('code') || '').trim();
+
+        if (!name || !phone || !code) {
+            setCheckinMsg('모든 필드를 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(
+                `${apiBase}/studies/${encodeURIComponent(studyCode)}/sessions/${sessionId}/attendances/self-check-in`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, code })
+                }
+            );
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '출석 처리에 실패했습니다.');
+            }
+            setCheckinMsg('출석이 정상 처리되었습니다.', 'success');
+            codeCheckinForm.reset();
+        } catch (err) {
+            setCheckinMsg(err.message, 'error');
+        }
+    });
+</script>
+</body>
+</html>

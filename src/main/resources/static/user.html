@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>스터디 출석 - 참여자 메인</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #eff6ff 0, #f9fafb 45%, #f3f4f6 100%);
+            --primary: #2563eb;
+            --primary-soft: #dbeafe;
+            --border-subtle: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --danger: #b91c1c;
+            --success: #15803d;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background: var(--bg-gradient);
+        }
+        * { box-sizing: border-box; }
+        body { margin:0; padding:0; }
+
+        .page-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: rgba(15,23,42,0.92);
+            color: #f9fafb;
+            padding: 12px 16px;
+            box-shadow: 0 1px 8px rgba(15,23,42,0.4);
+        }
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:8px;
+        }
+        .header-title {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+        }
+        .header-title-line {
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .logo-circle {
+            width:26px;
+            height:26px;
+            border-radius:999px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:15px;
+            font-weight:600;
+            background:linear-gradient(135deg,#3b82f6,#a855f7);
+        }
+        .header-title-line span.text {
+            font-size:19px;
+            font-weight:600;
+        }
+        .header-subtitle {
+            font-size:12px;
+            opacity:0.8;
+        }
+        .header-chip {
+            padding:3px 10px;
+            border-radius:999px;
+            font-size:11px;
+            background:rgba(248,250,252,0.1);
+            border:1px solid rgba(148,163,184,0.6);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        h2 {
+            margin:0 0 8px;
+            font-size:17px;
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+        h2::before {
+            content:"";
+            width:4px;
+            height:18px;
+            border-radius:999px;
+            background:linear-gradient(180deg,#60a5fa,#2563eb);
+            display:inline-block;
+        }
+        p { margin:4px 0; }
+
+        .card {
+            background:var(--card-bg);
+            border-radius:14px;
+            padding:18px 20px;
+            box-shadow:0 12px 30px rgba(15,23,42,0.08);
+            margin-bottom:18px;
+            border:1px solid rgba(148,163,184,0.18);
+        }
+
+        .form-row {
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            margin-bottom:8px;
+        }
+        .form-row label {
+            font-size:13px;
+            flex-basis:100%;
+            color:var(--text-muted);
+        }
+        input {
+            padding:7px 9px;
+            border-radius:8px;
+            border:1px solid #d4d4d8;
+            font-size:14px;
+            width:100%;
+            box-sizing:border-box;
+            transition:border-color .15s, box-shadow .15s, background .15s;
+        }
+        input:focus {
+            outline:none;
+            border-color:var(--primary);
+            box-shadow:0 0 0 1px rgba(37,99,235,0.3);
+            background:#eff6ff;
+        }
+
+        button {
+            padding:8px 14px;
+            border-radius:999px;
+            border:none;
+            background:var(--primary);
+            color:#fff;
+            cursor:pointer;
+            font-size:14px;
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            box-shadow:0 8px 16px rgba(37,99,235,0.4);
+            transition:transform .1s ease-out, box-shadow .1s ease-out, background .15s;
+        }
+        button:hover:not(:disabled){
+            transform:translateY(-1px);
+            box-shadow:0 12px 22px rgba(37,99,235,0.5);
+            background:#1d4ed8;
+        }
+        button:active:not(:disabled){
+            transform:translateY(0);
+            box-shadow:0 6px 12px rgba(37,99,235,0.4);
+        }
+        button:disabled { opacity:.65; cursor:default; box-shadow:none; }
+        .btn-secondary {
+            background:#e5e7eb;
+            color:#111827;
+            box-shadow:none;
+        }
+        .btn-secondary:hover:not(:disabled){
+            background:#d1d5db;
+        }
+
+        .text-sm { font-size:13px; }
+        .text-xs { font-size:12px; }
+        .text-muted { color:var(--text-muted); }
+        .mt-4 { margin-top:4px; }
+        .mt-8 { margin-top:8px; }
+        .mt-12 { margin-top:12px; }
+
+        .success { color:var(--success); font-size:13px; }
+        .error { color:var(--danger); font-size:13px; }
+
+        .badge {
+            padding:2px 9px;
+            border-radius:999px;
+            font-size:11px;
+            background:#ecfeff;
+            color:#0f766e;
+            border:1px solid #99f6e4;
+        }
+
+        .divider {
+            border:none;
+            border-top:1px dashed #e5e7eb;
+            margin:16px 0;
+        }
+
+        /* 스터디 카드 (코드 조회용) */
+        .study-card {
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+        }
+        .study-header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .study-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .study-code-pill {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: #1d4ed8;
+            color: #f9fafb;
+        }
+        .study-desc {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        .participant-list {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .participant-list-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 3px 0;
+        }
+        .participant-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: #2563eb;
+            color: #f9fafb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .participant-phone {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .participant-role {
+            font-size: 11px;
+            color: #4f46e5;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+
+        @media (min-width:640px){
+            .form-row.inline > * { flex:1; }
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header>
+        <div class="header-inner">
+            <div class="header-title">
+                <div class="header-title-line">
+                    <div class="logo-circle">ST</div>
+                    <span class="text">스터디 출석 - 참여자 메인</span>
+                </div>
+                <div class="header-subtitle">스터디 조회 및 참가 등록 페이지</div>
+            </div>
+            <div class="header-chip">참여자 전용 화면</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <p class="text-sm text-muted mt-4">
+            스터디 코드를 입력해 스터디 정보를 확인한 뒤, 이름/전화번호/비밀번호로 참가 등록을 할 수 있습니다.<br>
+            세션 및 출석 확인은 <code>study.html</code>에서 진행합니다.
+        </p>
+
+        <!-- 1. 스터디 코드로 조회 -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <h2>스터디 조회</h2>
+                <span class="badge">STEP 1</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                리더에게 받은 스터디 코드를 입력하고, 스터디 정보와 참여자 목록을 확인해요.
+            </p>
+
+            <div class="form-row inline mt-8">
+                <div>
+                    <label>스터디 코드 *</label>
+                    <input id="studyCodeInput" type="text" placeholder="예: ABC123">
+                </div>
+            </div>
+
+            <button id="loadStudyInfoBtn" type="button" class="mt-8 btn-secondary">
+                🔍 스터디 정보 조회
+            </button>
+
+            <div id="studyInfo" class="mt-8 text-sm"></div>
+        </div>
+
+        <!-- 2. 스터디 참가 (내 정보 입력 포함) -->
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <h2>스터디 참가</h2>
+                <span class="badge">STEP 2</span>
+            </div>
+            <p class="text-xs text-muted mt-4">
+                위에서 입력한 스터디 코드로, 내 정보를 등록해 스터디에 참가합니다.
+                이미 참가한 상태라면 서버에서 중복 참가를 무시하도록 처리해도 좋습니다.
+            </p>
+
+            <form id="joinForm" class="mt-12">
+                <div class="form-row inline">
+                    <div>
+                        <label>스터디 코드 (읽기 전용)</label>
+                        <input id="joinStudyCode" type="text" readonly placeholder="위에서 스터디 조회 후 자동 입력됩니다.">
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>이름 *</label>
+                        <input name="name" type="text" required placeholder="예: 홍길동">
+                    </div>
+                    <div>
+                        <label>전화번호 *</label>
+                        <input name="phone" type="text" required placeholder="예: 01012345678">
+                    </div>
+                </div>
+                <div class="form-row inline mt-4">
+                    <div>
+                        <label>비밀번호 *</label>
+                        <input name="password" type="password" required placeholder="스터디 참가 시 사용할 비밀번호">
+                    </div>
+                </div>
+                <button type="submit" class="mt-8">
+                    🙋 스터디 참가하기
+                </button>
+                <div id="joinMsg" class="mt-4 text-sm"></div>
+            </form>
+
+            <hr class="divider">
+
+            <p class="text-xs text-muted">
+                세션 목록 및 내 출석 현황은 <strong>study.html</strong>에서 확인할 수 있습니다.
+            </p>
+        </div>
+    </main>
+</div>
+
+<script>
+    const apiBase = '/api';
+
+    const studyCodeInput = document.getElementById('studyCodeInput');
+    const loadStudyInfoBtn = document.getElementById('loadStudyInfoBtn');
+    const studyInfoEl = document.getElementById('studyInfo');
+
+    const joinForm = document.getElementById('joinForm');
+    const joinStudyCodeInput = document.getElementById('joinStudyCode');
+    const joinMsg = document.getElementById('joinMsg');
+
+    let currentUser = {
+        studyCode: null,
+        name: null,
+        phone: null,
+        password: null,
+    };
+
+    function setMsg(el, msg, type) {
+        el.textContent = msg || '';
+        el.className = 'mt-4 text-sm ' + (
+            type === 'error' ? 'error' :
+                type === 'success' ? 'success' : ''
+        );
+    }
+
+    // 1. 스터디 코드로 스터디 정보 조회 + 참여자 목록 + role
+    loadStudyInfoBtn.addEventListener('click', async () => {
+        studyInfoEl.innerHTML = '';
+        const code = (studyCodeInput.value || '').trim();
+        if (!code) {
+            studyInfoEl.innerHTML = '<span class="error">스터디 코드를 먼저 입력해주세요.</span>';
+            return;
+        }
+
+        currentUser.studyCode = code;
+        joinStudyCodeInput.value = code;
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(code)}`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '스터디 조회에 실패했습니다.');
+            }
+            const data = await res.json(); // StudyInfoResDto
+
+            let html = `
+              <div class="study-card">
+                <div class="study-header-line">
+                  <div class="study-title">${data.name}</div>
+                  <div class="study-code-pill">스터디 코드: ${code}</div>
+                </div>
+                <div class="study-desc">${data.description || '설명이 없습니다.'}</div>
+                <div class="participant-list">
+                  <div class="participant-list-title">참여자 목록</div>
+            `;
+
+            if (data.participants && data.participants.length > 0) {
+                data.participants.forEach(p => {
+                    const pName = p.name || p.participantName || '';
+                    const pPhone = p.phone || p.participantPhone || '';
+                    const initial = pName ? pName[0] : '?';
+
+                    const rawRole =
+                        p.role ||
+                        p.participantRole ||
+                        (p.isLeader ? 'LEADER' : 'MEMBER') ||
+                        'MEMBER';
+
+                    const roleLabel = rawRole; // 필요하면 LEADER/MEMBER → 한글로 매핑 가능
+
+                    html += `
+                      <div class="participant-item">
+                        <div class="participant-avatar">${initial}</div>
+                        <div>
+                          <div>
+                            ${pName}
+                            <span class="participant-role">${roleLabel}</span>
+                          </div>
+                          <div class="participant-phone">${pPhone}</div>
+                        </div>
+                      </div>
+                    `;
+                });
+            } else {
+                html += `
+                  <div class="text-sm text-muted" style="margin-top:4px;">
+                    아직 참여자가 없습니다.
+                  </div>
+                `;
+            }
+
+            html += `</div></div>`;
+            studyInfoEl.innerHTML = html;
+        } catch (err) {
+            studyInfoEl.innerHTML = `<span class="error">${err.message}</span>`;
+        }
+    });
+
+    // 2. 스터디 참가 (내 정보 입력 포함)
+    joinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setMsg(joinMsg, '', '');
+
+        const code = (joinStudyCodeInput.value || '').trim();
+        const formData = new FormData(joinForm);
+        currentUser.studyCode = code;
+        currentUser.name = (formData.get('name') || '').trim();
+        currentUser.phone = (formData.get('phone') || '').trim();
+        currentUser.password = formData.get('password') || '';
+
+        if (!currentUser.studyCode || !currentUser.name || !currentUser.phone || !currentUser.password) {
+            setMsg(joinMsg, '스터디 코드/이름/전화번호/비밀번호를 모두 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${apiBase}/studies/${encodeURIComponent(currentUser.studyCode)}/join`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: currentUser.name,
+                    phone: currentUser.phone,
+                    password: currentUser.password
+                })
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || '스터디 참가에 실패했습니다.');
+            }
+            setMsg(joinMsg, '스터디 참가가 완료되었습니다! 🎉', 'success');
+        } catch (err) {
+            setMsg(joinMsg, err.message, 'error');
+        }
+    });
+</script>
+</body>
+</html>
